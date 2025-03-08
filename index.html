@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Contribution Pong - Poorna Teja Reddy K</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            background-color: white;
+            display: block;
+            margin: auto;
+            border: 2px solid cyan;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitHub Contribution Pong 🎾</h1>
+    <p>👤 **Player:** <strong>Poorna Teja Reddy K</strong></p>
+    <p>🛠️ **GitHub:** <a href="https://github.com/Poornatejareddy" target="_blank">@Poornatejareddy</a></p>
+    <p>⬆️ **Use W/S keys to move!**</p>
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let playerPaddleHeight = 100; // Default, updates based on GitHub contributions
+        let aiPaddleHeight = 100;
+        const paddleWidth = 10;
+        let playerY = (canvas.height - playerPaddleHeight) / 2;
+        let aiY = (canvas.height - aiPaddleHeight) / 2;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballSpeedX = 4, ballSpeedY = 4;
+        let playerSpeed = 6;
+
+        // GitHub Username (Fetch contributions)
+        const GITHUB_USERNAME = "Poornatejareddy";
+
+        function fetchGitHubContributions() {
+            fetch(`https://api.github.com/users/${GITHUB_USERNAME}`)
+                .then(response => response.json())
+                .then(data => {
+                    let contributions = data.public_repos || 10; // Default to 10 if no data
+                    playerPaddleHeight = Math.max(50, contributions * 3); // Scale paddle height
+                })
+                .catch(error => console.log("GitHub API Error:", error));
+        }
+
+        fetchGitHubContributions();
+
+        function drawPaddle(x, y, width, height) {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawBall() {
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function moveAI() {
+            let centerAI = aiY + aiPaddleHeight / 2;
+            if (centerAI < ballY - 35) aiY += 5;
+            else if (centerAI > ballY + 35) aiY -= 5;
+        }
+
+        function update() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+
+            if (
+                (ballX <= paddleWidth && ballY > playerY && ballY < playerY + playerPaddleHeight) ||
+                (ballX >= canvas.width - paddleWidth && ballY > aiY && ballY < aiY + aiPaddleHeight)
+            ) {
+                ballSpeedX *= -1;
+            }
+
+            if (ballX < 0 || ballX > canvas.width) {
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+                ballSpeedX = -ballSpeedX;
+            }
+
+            moveAI();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPaddle(0, playerY, paddleWidth, playerPaddleHeight);
+            drawPaddle(canvas.width - paddleWidth, aiY, paddleWidth, aiPaddleHeight);
+            drawBall();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "w" && playerY > 0) playerY -= playerSpeed;
+            if (e.key === "s" && playerY + playerPaddleHeight < canvas.height) playerY += playerSpeed;
+        });
+    </script>
+</body>
+</html>
